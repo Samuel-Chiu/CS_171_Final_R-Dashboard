@@ -1,29 +1,36 @@
-# CS 171 Final: Snow Crab Dashboard
+# Bering Sea Snow Crab Survey: R Analysis and Shiny Dashboard
 
-An interactive R Shiny dashboard and statistical analysis of 40+ years of Bering Sea snow crab survey data (1975–2018).
+An interactive R Shiny dashboard and statistical analysis of 44 years (1975–2018) of NOAA eastern Bering Sea bottom-trawl survey records for snow crab, about 18,000 observations.
 
 Final project for **CS 171: Fundamentals of R** at UH Hilo.
 
-<!-- screenshot: dashboard storyboard page -->
+## Questions
 
-## What it does
+How do two survey variables, `haul` and `bottom_depth`, change across survey years, and how strongly are they related?
 
-The project asks how snow crab **haul** and **bottom depth** have changed over time across ~18,000 survey observations.
+## Methods
 
-- **Normality checks:** histograms, QQ plots, and density plots for each numeric variable.
-- **Kruskal–Wallis tests:** compare haul and depth across years, since the data are not normally distributed.
-- **Regression:** fit to the raw data, then to yearly medians, then to medians with the 1979 outlier removed.
-- **Non-linear model:** a quadratic fit to median haul over time.
+| Step | Approach |
+| --- | --- |
+| Distribution checks | Histograms, QQ plots, density plots, and Shapiro–Wilk tests by year |
+| Differences between years | Kruskal–Wallis tests (the data are not normal), with `agricolae::kruskal` letter groupings |
+| Relationships | Spearman correlation and linear regression on the raw data, then on yearly medians |
+| Outlier check | Refit after removing 1979, which sits far from the other yearly medians |
+| Non-linear fit | Quadratic model of median `haul` over time |
 
-### Results
+## Results
 
 | Model | Adjusted R² | Notes |
 | --- | --- | --- |
-| Haul ~ depth (raw data) | 0.14 | ρ = 0.42, p < .001, but explains little of the variation |
-| Median depth ~ year | 0.12 | p = .013 |
-| Median haul ~ year | 0.26 | ρ = 0.65, p < .001 |
-| Median haul ~ year (no 1979) | 0.58 | the 1979 outlier was dragging the fit down |
-| Median haul ~ year², quadratic (no 1979) | **0.67** | best fit; hints that hauls may be trending down |
+| `haul ~ bottom_depth` (raw) | 0.14 | ρ = 0.42, p < .001, but explains little variation |
+| Median `bottom_depth ~ year` | 0.12 | p = .013 |
+| Median `haul ~ year` | 0.26 | ρ = 0.65, p < .001 |
+| Median `haul ~ year`, 1979 removed | 0.58 | 1979 was pulling the fit down |
+| Median `haul ~ year + year²`, 1979 removed | **0.67** | best fit |
+
+### A note on the `haul` variable
+
+In this dataset `haul` is the **haul number**, the ID of an individual trawl tow within a survey year (values run from 1 to 334). It is not a measure of how much crab was caught; that is `cpue` (catch per unit effort). The trends above therefore describe how haul numbering shifted across survey years, not changes in snow crab abundance. I didn't recognize this when I did the project, and I've left the original analysis unchanged as a record of the coursework. Repeating it with `cpue` as the response is the natural next step.
 
 ## Running it
 
@@ -37,41 +44,39 @@ install.packages(c(
 ))
 ```
 
-Then, from the repo root:
+Then, from the repository root:
 
 ```r
-# Interactive dashboard (opens in a browser; needs a live R session because it uses Shiny)
-rmarkdown::run("Final_Dashboard.Rmd")
-
-# Written analysis → CS_171_final.html
-rmarkdown::render("CS_171_final.Rmd")
+rmarkdown::run("scripts/dashboard.Rmd")      # interactive dashboard (needs a live R session)
+rmarkdown::render("scripts/analysis.Rmd")    # written analysis -> scripts/analysis.html
 ```
 
-In RStudio you can also open either `.Rmd` and click **Run Document** or **Knit**. A pre-rendered `CS_171_final.html` is already included.
+In RStudio you can also open either `.Rmd` and click **Run Document** or **Knit**. A pre-rendered `scripts/analysis.html` is included; download it and open it in a browser to read the analysis without R.
 
 ## Dashboard pages
 
-| Page | What's on it |
+| Page | Contents |
 | --- | --- |
 | Data Exploration Process | Storyboard walking through the question, tests, and results |
 | Normality | Histogram, QQ plot, and density plot for any numeric variable |
-| Regression | Scatter plot + fit for any pair of variables you choose |
+| Regression | Scatter plot and fit for any pair of variables |
 | Regression Pt 2 | The median-based models, with and without 1979 |
-| Density Plots Through the Years | Haul distribution for a selected year |
-| Something Extra | Haul heat map of the Bering Sea (static image; see below) |
+| Density Plots Through the Years | `haul` distribution for a selected year |
+| Something Extra | Map of survey haul locations (static image, see below) |
 
-## Files
+## Repository layout
 
-| File | Purpose |
-| --- | --- |
-| `Final_Dashboard.Rmd` | The flexdashboard / Shiny app |
-| `CS_171_final.Rmd` | Written analysis answering the exam prompts (stats, visuals, data management) |
-| `CS_171_final.html` | Rendered version of the analysis |
-| `mfsnowcrab.csv` | The dataset |
-| `*.PNG` | Images embedded in the dashboard (map, map code, regression output, data frame) |
+```
+scripts/
+  analysis.Rmd     written analysis answering the exam prompts
+  analysis.html    rendered analysis
+  dashboard.Rmd    flexdashboard + Shiny app
+data/              mfsnowcrab.csv
+figures/           images embedded in the dashboard
+```
 
 ## Data
 
-[Snow Crab dataset on Kaggle](https://www.kaggle.com/datasets/mattop/snowcrab), originally from the Resource Assessment and Conservation Engineering Division (RACE) of NOAA's Alaska Fisheries Science Center. Columns include `year`, `latitude`, `longitude`, `sex`, `bottom_depth`, `surface_temperature`, `bottom_temperature`, `haul`, and `cpue`.
+[Snow Crab dataset on Kaggle](https://www.kaggle.com/datasets/mattop/snowcrab), derived from the eastern Bering Sea bottom-trawl survey run by the Resource Assessment and Conservation Engineering (RACE) Division of NOAA's Alaska Fisheries Science Center. Columns: `id`, `latitude`, `longitude`, `year`, `name`, `sex`, `bottom_depth` (m), `surface_temperature` and `bottom_temperature` (°C), `haul`, and `cpue`.
 
-The haul map on the "Something Extra" page was built with a free trial of [Stadia Maps](https://stadiamaps.com/), which needs an API key. That's why the dashboard shows a screenshot of it rather than generating it live.
+The map on the "Something Extra" page was made with a free trial of [Stadia Maps](https://stadiamaps.com/), which requires an API key, so the dashboard shows a saved image instead of generating it live.
