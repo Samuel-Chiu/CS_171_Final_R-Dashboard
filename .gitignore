@@ -6,5 +6,7 @@
 *_files/
 rsconnect/
 
+.Renviron
+
 # OS
 .DS_Store
