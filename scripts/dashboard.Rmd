@@ -31,7 +31,7 @@ library(car)
 data <- read.csv("../data/mfsnowcrab.csv")
 
 
-Kani = read.csv("mfsnowcrab.csv")
+Kani = read.csv("../data/mfsnowcrab.csv")
 
 medianKani <- Kani %>%
   group_by(year) %>%
