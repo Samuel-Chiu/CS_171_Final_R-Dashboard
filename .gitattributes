@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.png binary
+# Keep data files byte-for-byte as downloaded
+*.csv -text
